@@ -10,6 +10,23 @@ services:
       - "5432:5432"
     volumes:
       - feedwatcher_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U feedwatcher"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: .
+    container_name: feedwatcher-app
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_HOST: postgres
+    env_file:
+      - .env
+    restart: unless-stopped
 
 volumes:
   feedwatcher_pgdata:

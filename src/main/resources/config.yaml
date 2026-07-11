@@ -1,7 +1,7 @@
 fetchIntervalMinutes: 1
 
 database:
-  url: "jdbc:postgresql://localhost:5432/feedwatcher"
+  url: "jdbc:postgresql://${DB_HOST}:5432/feedwatcher"
   username: "feedwatcher"
   password: "${DB_PASSWORD}"
   maxPoolSize: 5
