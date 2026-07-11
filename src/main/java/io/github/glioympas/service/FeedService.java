@@ -70,6 +70,12 @@ public class FeedService {
         try {
             List<FetchedPost> fetchedPosts = fetcher.get().fetch(source);
 
+            if(fetchedPosts.isEmpty()) {
+                log.info("{} → no fetched posts", source.name());
+                sourceRepository.markFetched(source.id());
+                return;
+            }
+
             FetchedPost latestFetchedPost = fetchedPosts.getFirst();
 
             Optional<Post> saved = postRepository.saveIfNew(source.id(), latestFetchedPost);
