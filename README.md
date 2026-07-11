@@ -21,6 +21,7 @@ Sources are fetched concurrently using virtual threads, so 30 feeds take about a
 - ROME for RSS/Atom parsing
 - Jsoup for HTML scraping
 - Jackson for JSON
+- SLF4J + Logback for logging
 - Maven
 
 ## Getting started

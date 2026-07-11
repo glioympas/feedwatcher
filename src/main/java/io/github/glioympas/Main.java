@@ -12,18 +12,22 @@ import io.github.glioympas.repository.PostRepository;
 import io.github.glioympas.repository.SourceRepository;
 import io.github.glioympas.service.FeedService;
 import io.github.glioympas.service.SchedulerService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
 public class Main {
 
+    private static final Logger log = LoggerFactory.getLogger(Main.class);
+
     public static void main(String[] args) throws InterruptedException {
         AppConfig config = ConfigLoader.load();
 
         try (Database database = new Database(config.database())) {
-            System.out.println("Connecting to database and running migrations...");
+            log.info("Connecting to database and running migrations...");
             database.migrate();
-            System.out.println("Migrations complete.");
+            log.info("Migrations complete.");
 
             SourceRepository sourceRepository = new SourceRepository(database.jdbi());
             PostRepository postRepository = new PostRepository(database.jdbi());

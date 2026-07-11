@@ -1,5 +1,8 @@
 package io.github.glioympas.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.time.Duration;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -10,6 +13,8 @@ import java.util.concurrent.TimeUnit;
  * application alive until it is shut down.
  */
 public class SchedulerService {
+
+    private static final Logger log = LoggerFactory.getLogger(SchedulerService.class);
 
     private final FeedService feedService;
     private final Duration interval;
@@ -26,7 +31,7 @@ public class SchedulerService {
      * after each cycle finishes. Blocks forever so the app keeps running.
      */
     public void start() {
-        System.out.println("Scheduler started. Interval: " + interval);
+        log.info("Scheduler started, interval: {}", interval);
 
         executor.scheduleWithFixedDelay(
                 this::runCycleSafely,
@@ -45,16 +50,16 @@ public class SchedulerService {
      */
     private void runCycleSafely() {
         try {
-            System.out.println("--- Starting feed cycle ---");
+            log.info("--- Starting feed cycle ---");
             feedService.runFetching();
-            System.out.println("--- Feed cycle complete ---");
+            log.info("--- Feed cycle complete ---");
         } catch (Exception e) {
-            System.out.println("Feed cycle failed (will retry next interval): " + e.getMessage());
+            log.error("Feed cycle failed (will retry next interval)", e);
         }
     }
 
     public void stop() {
-        System.out.println("Scheduler stopping...");
+        log.info("Scheduler stopping...");
         executor.shutdown();
     }
 
