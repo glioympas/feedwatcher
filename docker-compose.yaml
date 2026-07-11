@@ -1,0 +1,15 @@
+services:
+  postgres:
+    image: postgres:17
+    container_name: feedwatcher-db
+    environment:
+      POSTGRES_DB: feedwatcher
+      POSTGRES_USER: feedwatcher
+      POSTGRES_PASSWORD: feedwatcher
+    ports:
+      - "5432:5432"
+    volumes:
+      - feedwatcher_pgdata:/var/lib/postgresql/data
+
+volumes:
+  feedwatcher_pgdata:

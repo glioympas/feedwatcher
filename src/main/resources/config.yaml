@@ -1,0 +1,17 @@
+fetchIntervalMinutes: 1
+
+database:
+  url: "jdbc:postgresql://localhost:5432/feedwatcher"
+  username: "feedwatcher"
+  password: "${DB_PASSWORD}"
+  maxPoolSize: 5
+
+notifications:
+  discordWebhookUrl: "${DISCORD_WEBHOOK_URL}"
+  slackWebhookUrl: "${SLACK_WEBHOOK_URL}"
+
+sources:
+  - id: "hackernews"
+    name: "Hacker News"
+    url: "https://hnrss.org/frontpage"
+    type: "rss"
