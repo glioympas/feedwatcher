@@ -6,9 +6,9 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import java.io.IOException;
 import java.time.Duration;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Scrapes the latest article from blogs that have no RSS/Atom feed.
@@ -18,13 +18,6 @@ import java.util.Map;
  * hardcoded here; later they can move into config per source.
  */
 public class HtmlFetcher implements Fetcher {
-
-    /**
-     * Per-site selectors. Key = the source URL (must match config exactly),
-     * value = a CSS selector matching article link <a> elements, newest first.
-     *
-     * TODO: replace this placeholder with your real blog + selector.
-     */
     private static final int TIMEOUT_MS = (int) Duration.ofSeconds(20).toMillis();
     private static final String USER_AGENT = "FeedWatcher/1.0";
 
@@ -42,23 +35,34 @@ public class HtmlFetcher implements Fetcher {
         }
 
         try {
-            Document doc = Jsoup.connect(source.url())
-                    .userAgent(USER_AGENT)
-                    .timeout(TIMEOUT_MS)
-                    .followRedirects(true)
-                    .get();
-
-            Elements matches = doc.select(selector);
-            if (matches.isEmpty()) {
-                return List.of();   // selector matched nothing on the page
-            }
-
-            Element latest = matches.first();
-            return List.of(toPost(latest));
-
+            Document doc = downloadDoc(source);
+            return latestOf(doc, source);
         } catch (Exception e) {
             throw new FetchException("Failed to scrape " + source.url(), e);
         }
+    }
+
+    List<FetchedPost> latestOf(Document doc, Source source) {
+        Elements matches = doc.select(source.itemSelector());
+        if (matches.isEmpty()) {
+            return List.of();   // selector matched nothing on the page
+        }
+
+        Element latest = matches.first();
+
+        if(latest == null) {
+            return List.of();
+        }
+
+        return List.of(toPost(latest));
+    }
+
+    private Document downloadDoc(Source source) throws IOException {
+        return Jsoup.connect(source.url())
+                .userAgent(USER_AGENT)
+                .timeout(TIMEOUT_MS)
+                .followRedirects(true)
+                .get();
     }
 
     private FetchedPost toPost(Element link) {

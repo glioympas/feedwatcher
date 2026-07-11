@@ -14,6 +14,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Fetches an RSS/Atom feed and returns the single most-recently-published entry.
@@ -37,16 +38,8 @@ public class RssFetcher implements Fetcher {
     @Override
     public List<FetchedPost> fetch(Source source) throws FetchException {
         try {
-            SyndFeed feed = downloadAndParse(source);
-
-            List<SyndEntry> entries = feed.getEntries();
-            if (entries.isEmpty()) {
-                return List.of();
-            }
-
-            SyndEntry latest = pickLatest(entries);
-            return List.of(toPost(latest));
-
+            SyndFeed feed = download(source);
+            return latestOf(feed);
         } catch (FetchException e) {
             throw e;
         } catch (Exception e) {
@@ -54,7 +47,10 @@ public class RssFetcher implements Fetcher {
         }
     }
 
-    private SyndFeed downloadAndParse(Source source) throws Exception {
+    /**
+     * Downloads and parses the feed at the source's URL. (Network — not unit-tested.)
+     */
+    private SyndFeed download(Source source) throws Exception {
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(source.url()))
                 .timeout(Duration.ofSeconds(20))
@@ -76,11 +72,19 @@ public class RssFetcher implements Fetcher {
     }
 
     /**
-     * Returns the entry with the newest published date.
-     * Entries without a date are treated as oldest, so a dated entry always wins.
-     * If no entry has a date, falls back to the first entry (feed order).
+     * Picks the single most-recently-published entry from a feed and maps it.
+     * Pure logic — no network — so this is what we unit-test.
      */
-    private SyndEntry pickLatest(List<SyndEntry> entries) {
+    List<FetchedPost> latestOf(SyndFeed feed) {
+        List<SyndEntry> entries = feed.getEntries();
+        if (entries.isEmpty()) {
+            return List.of();
+        }
+        SyndEntry latest = pickLatest(entries);
+        return List.of(toPost(latest));
+    }
+
+    SyndEntry pickLatest(List<SyndEntry> entries) {
         return entries.stream()
                 .max(Comparator.comparing(
                         RssFetcher::publishedInstant,
